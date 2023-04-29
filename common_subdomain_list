@@ -48,7 +48,7 @@
     app
     services
     status
-        events
+    events
     gallery
     donate
     payments
@@ -148,3 +148,53 @@
     my
     vip
     test
+        admin
+    secure
+    login
+    manage
+    manager
+    dashboard
+    account
+    accounts
+    user
+    users
+    control
+    controlpanel
+    panel
+    backend
+    backoffice
+    staff
+    sys
+    sysadmin
+    system
+    systems
+    portal
+    my
+    settings
+    config
+    configuration
+    setup
+    auth
+    authentication
+    access
+    master
+    superuser
+    operator
+    root
+    dev
+    staging
+    test
+    support
+    help
+    logs
+    reports
+    data
+    database
+    db
+    server
+    service
+    services
+    tools
+    monitor
+    monitoring
+    status
