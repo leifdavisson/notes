@@ -1,0 +1,31 @@
+function Get-GroupMembers {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$GroupName
+    )
+
+    begin {
+        # Connect to Azure AD if not already connected
+        try {
+            $context = Get-AzureADCurrentSessionInfo -ErrorAction Stop
+        }
+        catch {
+            Connect-AzureAD | Out-Null
+        }
+    }
+
+    process {
+        # Get the group object
+        $group = Get-AzureADGroup -SearchString $GroupName
+
+        # Get the members of the group
+        $members = Get-AzureADGroupMember -ObjectId $group.ObjectId -All $true
+
+        # Export the member information to a CSV file
+        $members | Select-Object DisplayName, UserPrincipalName | Export-Csv -LiteralPath ./AllStaff.csv -NoTypeInformation
+
+        # Return the member count
+        return $members.Count
+    }
+}
