@@ -1,0 +1,48 @@
+function Get-AZGroupDiff {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$GroupAName,
+        [Parameter(Mandatory=$true)]
+        [string]$GroupBName
+    )
+
+    begin {
+        # Connect to Azure AD if not already connected
+        try {
+            $context = Get-AzureADCurrentSessionInfo -ErrorAction Stop
+        }
+        catch {
+            Connect-AzureAD | Out-Null
+        }
+    }
+
+    process {
+        # Get the group objects
+        $groupA = Get-AzureADGroup -SearchString $GroupAName -ErrorAction SilentlyContinue
+        $groupB = Get-AzureADGroup -SearchString $GroupBName -ErrorAction SilentlyContinue
+
+        # Check if the groups exist
+        if ($null -eq $groupA) {
+            Write-Warning "Group '$GroupAName' not found."
+            return
+        }
+        if ($null -eq $groupB) {
+            Write-Warning "Group '$GroupBName' not found."
+            return
+        }
+
+        # Get the members of each group
+        $membersA = Get-AzureADGroupMember -ObjectId ([string]$groupA.ObjectId) -All $true
+        $membersB = Get-AzureADGroupMember -ObjectId ([string]$groupB.ObjectId) -All $true
+
+        # Find the difference between the two groups
+        $diff = $membersA | Where-Object { $_.UserPrincipalName -notin $membersB.UserPrincipalName }
+
+        # Export the difference to a CSV file
+        $diff | Select-Object DisplayName, UserPrincipalName | Export-Csv -LiteralPath ./GroupDiff.csv -NoTypeInformation
+
+        # Return the difference
+        return $diff
+    }
+}
