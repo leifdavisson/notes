@@ -1,0 +1,35 @@
+# Import the Exchange Online module
+Import-Module ExchangeOnlineManagement
+
+# Connect to Exchange Online
+Connect-ExchangeOnline -UserPrincipalName admin@yourdomain.com -ShowProgress $true
+
+# Define the domain to be trusted
+$trustedDomain = "example.com"
+
+# Get all mailboxes
+$mailboxes = Get-Mailbox -ResultSize Unlimited
+
+foreach ($mailbox in $mailboxes) {
+    # Get the current Junk Email configuration
+    $config = Get-MailboxJunkEmailConfiguration -Identity $mailbox.UserPrincipalName
+
+    # Filter out entries containing the trusted domain
+    $updatedBlockedSenders = $config.BlockedSendersAndDomains | Where-Object { $_ -notlike "*$trustedDomain*" }
+
+    # Update the Junk Email configuration with the filtered list
+    Set-MailboxJunkEmailConfiguration -Identity $mailbox.UserPrincipalName -BlockedSendersAndDomains $updatedBlockedSenders
+
+    # Add the trusted domain to the Safe Senders list
+    $safeSenders = $config.TrustedSendersAndDomains
+    if ($safeSenders -notcontains $trustedDomain) {
+        $safeSenders += $trustedDomain
+        Set-MailboxJunkEmailConfiguration -Identity $mailbox.UserPrincipalName -TrustedSendersAndDomains $safeSenders
+    }
+
+    # Output the result
+    Write-Output "Updated Junk Email configuration for $($mailbox.UserPrincipalName)"
+}
+
+# Disconnect from Exchange Online
+Disconnect-ExchangeOnline -Confirm:$false
